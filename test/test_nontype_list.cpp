@@ -97,20 +97,15 @@ namespace {
   // nontype_list_sort
 
   template<NonTypeList List>
-  using dim_sort_t = nontype_list_sort_t<List, std::experimental::ranges::less>;
+  using sort_t = nontype_list_sort_t<List, std::experimental::ranges::less>;
 
-  static_assert(std::is_same_v<dim_sort_t<nontype_list<0>>, nontype_list<0>>);
-  static_assert(std::is_same_v<dim_sort_t<nontype_list<0, 1>>, nontype_list<0, 1>>);
-  static_assert(std::is_same_v<dim_sort_t<nontype_list<1, 0>>, nontype_list<0, 1>>);
-  static_assert(std::is_same_v<dim_sort_t<nontype_list<38, 27, 43, 3, 9, 82, 10>>, nontype_list<3, 9, 10, 27, 38, 43, 82>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<0>>, nontype_list<0>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<0, 1>>, nontype_list<0, 1>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<1, 0>>, nontype_list<0, 1>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<38, 27, 43, 3, 9, 82, 10>>, nontype_list<3, 9, 10, 27, 38, 43, 82>>);
 
-  // exp_dim_id_less
-
-  template<NonTypeList List>
-  using exp_sort_t = nontype_list_sort_t<List, std::experimental::ranges::less>;
-
-  static_assert(std::is_same_v<exp_sort_t<dimension<exp(0, 1)>>, dimension<exp(0, 1)>>);
-  static_assert(std::is_same_v<exp_sort_t<dimension<e<0, 1>, e<1, -1>>>, dimension<e<0, 1>, e<1, -1>>>);
-  static_assert(std::is_same_v<exp_sort_t<dimension<e<1, 1>, e<0, -1>>>, dimension<e<0, -1>, e<1, 1>>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<exp(0, 1)>>, nontype_list<exp(0, 1)>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<exp(0, 1), exp(1, -1)>>, nontype_list<exp(0, 1), exp(1, -1)>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<exp(1, 1), exp(0, -1)>>, nontype_list<exp(0, -1), exp(1, 1)>>);
 
 }  // namespace

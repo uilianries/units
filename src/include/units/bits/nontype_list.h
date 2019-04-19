@@ -22,10 +22,9 @@
 
 #pragma once
 
-#include <units/bits/tools.h>
 #include <type_traits>
 
-namespace mp {
+namespace units {
 
   namespace detail {
 
@@ -163,4 +162,4 @@ namespace mp {
   template<NonTypeList List, typename Pred>
   using nontype_list_sort_t = nontype_list_sort<List, Pred>::type;
 
-}  // namespace mp
+}  // namespace units

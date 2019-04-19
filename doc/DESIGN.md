@@ -148,7 +148,7 @@ their exponents. That is why second sorting of a type list may be required. For 
 ```cpp
 template<Exponent... Es>
 struct make_dimension {
-  using type = mp::type_list_sort_t<detail::dim_consolidate_t<mp::type_list_sort_t<dimension<Es...>, exp_dim_id_less>>, exp_greater_equal>;
+  using type = type_list_sort_t<detail::dim_consolidate_t<type_list_sort_t<dimension<Es...>, exp_dim_id_less>>, exp_greater_equal>;
 };
 ```
 
@@ -180,7 +180,7 @@ Example implementation of `merge_dimension` may look like:
 ```cpp
 template<Dimension D1, Dimension D2>
 struct merge_dimension {
-  using type = mp::type_list_sort_t<detail::dim_consolidate_t<mp::type_list_merge_sorted_t<D1, D2, exp_dim_id_less>>, exp_greater_equal>;
+  using type = type_list_sort_t<detail::dim_consolidate_t<type_list_merge_sorted_t<D1, D2, exp_dim_id_less>>, exp_greater_equal>;
 };
 ```
 

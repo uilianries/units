@@ -109,7 +109,7 @@ namespace units {
     template<Exponent E1, Exponent... ERest>
     struct dim_consolidate<dimension<E1, ERest...>> {
       using rest = dim_consolidate_t<dimension<ERest...>>;
-      using type = std::conditional_t<std::is_same_v<rest, dimension<>>, dimension<E1>, mp::nontype_list_push_front_t<rest, E1>>;
+      using type = std::conditional_t<std::is_same_v<rest, dimension<>>, dimension<E1>, nontype_list_push_front_t<rest, E1>>;
     };
 
     template<Exponent E1, Exponent E2, Exponent... ERest>
@@ -133,7 +133,7 @@ namespace units {
 
   template<Exponent... Es>
   struct make_dimension {
-    using type = nontype_list_sort_t<detail::dim_consolidate_t<mp::nontype_list_sort_t<dimension<Es...>, std::experimental::ranges::less>>, std::experimental::ranges::greater_equal>;
+    using type = nontype_list_sort_t<detail::dim_consolidate_t<nontype_list_sort_t<dimension<Es...>, std::experimental::ranges::less>>, std::experimental::ranges::greater_equal>;
   };
 
   template<Exponent... Es>
@@ -141,7 +141,7 @@ namespace units {
 
   template<Dimension D1, Dimension D2>
   struct merge_dimension {
-    using type = nontype_list_sort_t<detail::dim_consolidate_t<mp::nontype_list_merge_sorted_t<D1, D2, std::experimental::ranges::less>>, std::experimental::ranges::greater_equal>;
+    using type = nontype_list_sort_t<detail::dim_consolidate_t<nontype_list_merge_sorted_t<D1, D2, std::experimental::ranges::less>>, std::experimental::ranges::greater_equal>;
   };
 
   template<Dimension D1, Dimension D2>

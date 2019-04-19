@@ -24,9 +24,9 @@
 add_library(unit_tests
     test_dimension.cpp
     test_quantity.cpp
-    test_tools.cpp
-    test_type_list.cpp
     test_units.cpp
+    test_nontype_list.cpp
+    test_ratio.cpp
 )
 target_link_libraries(unit_tests
     PRIVATE
