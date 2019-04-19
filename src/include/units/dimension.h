@@ -27,7 +27,7 @@
 
 namespace units {
 
-  // Workaround for the gcc-9 issue
+  // workaround for the gcc-9 issue
   using base_dimension = int;
 
 //  struct base_dimension {
@@ -46,9 +46,13 @@ namespace units {
     int value;
     /* consteval */ constexpr exp(base_dimension d, int v) noexcept : dimension(d), value(v) {}
     // auto operator<=>(const exp&) = default;
+    friend /* consteval */ constexpr bool operator<(const exp& lhs, const exp& rhs)
+    {
+      if(lhs.dimension == rhs.dimension)
+        return lhs.value < rhs.value;
+      return lhs.dimension < rhs.dimension;
+    }
     friend /* consteval */ constexpr exp operator-(const exp& e) { return {e.dimension, -e.value}; }
-//    /* consteval */ constexpr bool less_dimension(const exp& lhs, const exp& rhs) const { return lhs.dimension < rhs.dimension; }
-//    /* consteval */ constexpr bool less_value(const exp& lhs, const exp& rhs) const { return lhs.value < rhs.value; }
   };
 
   template<exp E>
