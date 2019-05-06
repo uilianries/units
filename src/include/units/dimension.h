@@ -24,19 +24,47 @@
 
 #include <units/bits/nontype_list.h>
 #include <units/bits/upcasting.h>
+#include <iterator>
 
 namespace units {
 
-  // workaround for the gcc-9 issue
-  using base_dimension = int;
+  struct base_dimension {
+    // std::array<char, 10> name{};
+    char name[10] = {};
+    /* consteval */ constexpr explicit base_dimension(const char* p) noexcept
+    {
+      for(int i = 0; i < 10; ++i)
+        if((name[i] = p[i]) == 0)
+          break;
+    }
 
-//  struct base_dimension {
-//    const char* name;
-//    /* consteval */ constexpr explicit base_dimension(const char* n) noexcept : name(n) {}
-//    // auto operator<=>(const base_dimension&) = default;
-//    /* consteval */ constexpr friend bool operator<(const base_dimension& lhs, const base_dimension& rhs) noexcept { return lhs.name < rhs.name; }
-//    /* consteval */ constexpr friend bool operator==(const base_dimension& lhs, const base_dimension& rhs) noexcept { return lhs.name == rhs.name; }
-//  };
+    // bool operator==(const base_dimension&) = default;
+    /* consteval */ constexpr friend bool operator<(const base_dimension& lhs, const base_dimension& rhs) noexcept
+    {
+      using std::begin, std::end;
+      auto first1 = begin(lhs.name);
+      auto first2 = begin(rhs.name);
+      const auto last1 = end(lhs.name);
+      const auto last2 = end(rhs.name);
+
+      for(; (first1 != last1) && (first2 != last2); ++first1, (void)++first2 ) {
+        if(*first1 < *first2) return true;
+        if(*first2 < *first1) return false;
+      }
+      return first1 == last1 && first2 != last2;
+    }
+    /* consteval */ constexpr friend bool operator==(const base_dimension& lhs, const base_dimension& rhs) noexcept
+    {
+      using std::size;
+
+      if(size(lhs.name) != size(rhs.name))
+        return false;
+      for(size_t i = 0; i != size(lhs.name); ++i)
+        if(lhs.name[i] != rhs.name[i])
+          return false;
+      return true;
+    }
+  };
 
 
   // exp
@@ -117,7 +145,7 @@ namespace units {
     };
 
     template<Exponent E1, Exponent E2, Exponent... ERest>
-      requires E1.dimension == E2.dimension
+        requires E1.dimension.name == E2.dimension.name
     struct dim_consolidate<dimension<E1, E2, ERest...>> {
       // SFINAE-friendly replacement of std::conditional_t
       [[nodiscard]] /* consteval */ constexpr auto get_type() noexcept

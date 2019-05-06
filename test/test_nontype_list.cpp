@@ -104,8 +104,11 @@ namespace {
   static_assert(std::is_same_v<sort_t<nontype_list<1, 0>>, nontype_list<0, 1>>);
   static_assert(std::is_same_v<sort_t<nontype_list<38, 27, 43, 3, 9, 82, 10>>, nontype_list<3, 9, 10, 27, 38, 43, 82>>);
 
-  static_assert(std::is_same_v<sort_t<nontype_list<exp(0, 1)>>, nontype_list<exp(0, 1)>>);
-  static_assert(std::is_same_v<sort_t<nontype_list<exp(0, 1), exp(1, -1)>>, nontype_list<exp(0, 1), exp(1, -1)>>);
-  static_assert(std::is_same_v<sort_t<nontype_list<exp(1, 1), exp(0, -1)>>, nontype_list<exp(0, -1), exp(1, 1)>>);
+  constexpr base_dimension dim_1("dim_1");
+  constexpr base_dimension dim_2("dim_2");
+  static_assert(std::is_same_v<nontype_list<exp(dim_1, 1)>, nontype_list<exp(dim_1, 1)>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<exp(dim_1, 1)>>, nontype_list<exp(dim_1, 1)>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<exp(dim_1, 1), exp(dim_2, -1)>>, nontype_list<exp(dim_1, 1), exp(dim_2, -1)>>);
+  static_assert(std::is_same_v<sort_t<nontype_list<exp(dim_2, 1), exp(dim_1, -1)>>, nontype_list<exp(dim_1, -1), exp(dim_2, 1)>>);
 
 }  // namespace
