@@ -31,46 +31,45 @@ namespace units {
     template<typename T>
     inline constexpr bool is_nontype_list = false;
 
-    template<template<auto...> typename T, auto... NonTypes>
-    inline constexpr bool is_nontype_list<T<NonTypes...>> = true;
+    template<template<auto...> typename T, auto... Items>
+    inline constexpr bool is_nontype_list<T<Items...>> = true;
 
   }  // namespace detail
 
   template<typename T>
-//  concept bool NonTypeList = detail::is_nontype_list<T>;
-  concept bool NonTypeList = true;
+  concept bool NonTypeList = detail::is_nontype_list<T>;
 
   // push_front
 
-  template<NonTypeList List, auto... NonTypes>
+  template<NonTypeList List, auto... Items>
   struct nontype_list_push_front;
 
-  template<template<auto...> typename List, auto... OldNonTypes, auto... NewNonTypes>
-  struct nontype_list_push_front<List<OldNonTypes...>, NewNonTypes...> {
-    using type = List<NewNonTypes..., OldNonTypes...>;
+  template<template<auto...> typename List, auto... OldItems, auto... NewItems>
+  struct nontype_list_push_front<List<OldItems...>, NewItems...> {
+    using type = List<NewItems..., OldItems...>;
   };
 
-  template<NonTypeList List, auto... NonTypes>
-  using nontype_list_push_front_t = nontype_list_push_front<List, NonTypes...>::type;
+  template<NonTypeList List, auto... Items>
+  using nontype_list_push_front_t = nontype_list_push_front<List, Items...>::type;
 
   // push_back
 
-  template<NonTypeList List, auto... NonTypes>
+  template<NonTypeList List, auto... Items>
   struct nontype_list_push_back;
 
-  template<template<auto...> typename List, auto... OldNonTypes, auto... NewNonTypes>
-  struct nontype_list_push_back<List<OldNonTypes...>, NewNonTypes...> {
-    using type = List<OldNonTypes..., NewNonTypes...>;
+  template<template<auto...> typename List, auto... OldItems, auto... NewItems>
+  struct nontype_list_push_back<List<OldItems...>, NewItems...> {
+    using type = List<OldItems..., NewItems...>;
   };
 
-  template<NonTypeList List, auto... NonTypes>
-  using nontype_list_push_back_t = nontype_list_push_back<List, NonTypes...>::type;
+  template<NonTypeList List, auto... Items>
+  using nontype_list_push_back_t = nontype_list_push_back<List, Items...>::type;
 
   // split
 
   namespace detail {
 
-    template<template<auto...> typename List, std::size_t Idx, std::size_t N, auto... NonTypes>
+    template<template<auto...> typename List, std::size_t Idx, std::size_t N, auto... Items>
     struct split_impl;
 
     template<template<auto...> typename List, std::size_t Idx, std::size_t N>
@@ -93,10 +92,10 @@ namespace units {
   template<NonTypeList List, std::size_t N>
   struct nontype_list_split;
 
-  template<template<auto...> typename List, std::size_t N, auto... NonTypes>
-  struct nontype_list_split<List<NonTypes...>, N> {
-    static_assert(N <= sizeof...(NonTypes), "Invalid index provided");
-    using split = detail::split_impl<List, 0, N, NonTypes...>;
+  template<template<auto...> typename List, std::size_t N, auto... Items>
+  struct nontype_list_split<List<Items...>, N> {
+    static_assert(N <= sizeof...(Items), "Invalid index provided");
+    using split = detail::split_impl<List, 0, N, Items...>;
     using first_list = split::first_list;
     using second_list = split::second_list;
   };
@@ -106,8 +105,8 @@ namespace units {
   template<NonTypeList List>
   struct nontype_list_split_half;
 
-  template<template<auto...> typename List, auto... NonTypes>
-  struct nontype_list_split_half<List<NonTypes...>> : nontype_list_split<List<NonTypes...>, (sizeof...(NonTypes) + 1) / 2> {
+  template<template<auto...> typename List, auto... Items>
+  struct nontype_list_split_half<List<Items...>> : nontype_list_split<List<Items...>, (sizeof...(Items) + 1) / 2> {
   };
 
   // merge_sorted
@@ -150,10 +149,10 @@ namespace units {
     using type = List<T>;
   };
 
-  template<template<auto...> typename List, auto... NonTypes, typename Pred>
-  struct nontype_list_sort<List<NonTypes...>, Pred> {
-    using types = List<NonTypes...>;
-    using split = nontype_list_split_half<List<NonTypes...>>;
+  template<template<auto...> typename List, auto... Items, typename Pred>
+  struct nontype_list_sort<List<Items...>, Pred> {
+    using types = List<Items...>;
+    using split = nontype_list_split_half<List<Items...>>;
     using left = nontype_list_sort<typename split::first_list, Pred>::type;
     using right = nontype_list_sort<typename split::second_list, Pred>::type;
     using type = nontype_list_merge_sorted_t<left, right, Pred>;
