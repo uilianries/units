@@ -26,96 +26,90 @@
 namespace {
 
   using namespace units;
+  
+  template<auto... NonTypes>
+  struct nontype_list;
+  
+  // nontype_list_push_front
 
-  template<typename... Types>
-  struct type_list;
+  static_assert(std::is_same_v<nontype_list_push_front_t<nontype_list<>, 1>, nontype_list<1>>);
+  static_assert(std::is_same_v<nontype_list_push_front_t<nontype_list<>, 1, 2, 3>, nontype_list<1, 2, 3>>);
+  static_assert(std::is_same_v<nontype_list_push_front_t<nontype_list<3>, 1, 2>, nontype_list<1, 2, 3>>);
 
-  // type_list_push_front
+  // nontype_list_push_back
 
-  static_assert(std::is_same_v<type_list_push_front_t<type_list<>, int>, type_list<int>>);
-  static_assert(std::is_same_v<type_list_push_front_t<type_list<>, int, long, double>, type_list<int, long, double>>);
-  static_assert(std::is_same_v<type_list_push_front_t<type_list<double>, int, long>, type_list<int, long, double>>);
+  static_assert(std::is_same_v<nontype_list_push_back_t<nontype_list<>, 1>, nontype_list<1>>);
+  static_assert(std::is_same_v<nontype_list_push_back_t<nontype_list<>, 1, 2, 3>, nontype_list<1, 2, 3>>);
+  static_assert(std::is_same_v<nontype_list_push_back_t<nontype_list<3>, 1, 2>, nontype_list<3, 1, 2>>);
 
-  // type_list_push_back
+  // nontype_list_split
 
-  static_assert(std::is_same_v<type_list_push_back_t<type_list<>, int>, type_list<int>>);
-  static_assert(std::is_same_v<type_list_push_back_t<type_list<>, int, long, double>, type_list<int, long, double>>);
-  static_assert(std::is_same_v<type_list_push_back_t<type_list<double>, int, long>, type_list<double, int, long>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1>, 0>::first_list, nontype_list<>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1>, 0>::second_list, nontype_list<1>>);
 
-  // type_list_split
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1>, 1>::first_list, nontype_list<1>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1>, 1>::second_list, nontype_list<>>);
 
-  static_assert(std::is_same_v<type_list_split<type_list<int>, 0>::first_list, type_list<>>);
-  static_assert(std::is_same_v<type_list_split<type_list<int>, 0>::second_list, type_list<int>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2>, 0>::first_list, nontype_list<>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2>, 0>::second_list, nontype_list<1, 2>>);
 
-  static_assert(std::is_same_v<type_list_split<type_list<int>, 1>::first_list, type_list<int>>);
-  static_assert(std::is_same_v<type_list_split<type_list<int>, 1>::second_list, type_list<>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2>, 1>::first_list, nontype_list<1>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2>, 1>::second_list, nontype_list<2>>);
 
-  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 0>::first_list, type_list<>>);
-  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 0>::second_list, type_list<int, long>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2>, 2>::first_list, nontype_list<1, 2>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2>, 2>::second_list, nontype_list<>>);
 
-  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 1>::first_list, type_list<int>>);
-  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 1>::second_list, type_list<long>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2, 3>, 1>::first_list, nontype_list<1>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2, 3>, 1>::second_list, nontype_list<2, 3>>);
 
-  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 2>::first_list, type_list<int, long>>);
-  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 2>::second_list, type_list<>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2, 3>, 2>::first_list, nontype_list<1, 2>>);
+  static_assert(std::is_same_v<nontype_list_split<nontype_list<1, 2, 3>, 2>::second_list, nontype_list<3>>);
 
-  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 1>::first_list, type_list<int>>);
-  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 1>::second_list, type_list<long, double>>);
+  // nontype_list_split_half
 
-  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 2>::first_list, type_list<int, long>>);
-  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 2>::second_list, type_list<double>>);
+  static_assert(std::is_same_v<nontype_list_split_half<nontype_list<1>>::first_list, nontype_list<1>>);
+  static_assert(std::is_same_v<nontype_list_split_half<nontype_list<1>>::second_list, nontype_list<>>);
 
-  // type_list_split_half
+  static_assert(std::is_same_v<nontype_list_split_half<nontype_list<1, 2>>::first_list, nontype_list<1>>);
+  static_assert(std::is_same_v<nontype_list_split_half<nontype_list<1, 2>>::second_list, nontype_list<2>>);
 
-  static_assert(std::is_same_v<type_list_split_half<type_list<int>>::first_list, type_list<int>>);
-  static_assert(std::is_same_v<type_list_split_half<type_list<int>>::second_list, type_list<>>);
-
-  static_assert(std::is_same_v<type_list_split_half<type_list<int, long>>::first_list, type_list<int>>);
-  static_assert(std::is_same_v<type_list_split_half<type_list<int, long>>::second_list, type_list<long>>);
-
-  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double>>::first_list, type_list<int, long>>);
-  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double>>::second_list, type_list<double>>);
+  static_assert(std::is_same_v<nontype_list_split_half<nontype_list<1, 2, 3>>::first_list, nontype_list<1, 2>>);
+  static_assert(std::is_same_v<nontype_list_split_half<nontype_list<1, 2, 3>>::second_list, nontype_list<3>>);
 
   static_assert(
-      std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::first_list, type_list<int, long>>);
+      std::is_same_v<nontype_list_split_half<nontype_list<1, 2, 3, 4>>::first_list, nontype_list<1, 2>>);
   static_assert(
-      std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::second_list, type_list<double, float>>);
+      std::is_same_v<nontype_list_split_half<nontype_list<1, 2, 3, 4>>::second_list, nontype_list<3, 4>>);
 
-  // type_list_merge_sorted
+  // nontype_list_merge_sorted
 
-  static_assert(std::is_same_v<type_list_merge_sorted_t<type_list<dim_id<0>>, type_list<dim_id<1>>, dim_id_less>,
-                               type_list<dim_id<0>, dim_id<1>>>);
-  static_assert(std::is_same_v<type_list_merge_sorted_t<type_list<dim_id<1>>, type_list<dim_id<0>>, dim_id_less>,
-                               type_list<dim_id<0>, dim_id<1>>>);
+  static_assert(std::is_same_v<nontype_list_merge_sorted_t<nontype_list<0>, nontype_list<1>, std::experimental::ranges::less>,
+                               nontype_list<0, 1>>);
+  static_assert(std::is_same_v<nontype_list_merge_sorted_t<nontype_list<1>, nontype_list<0>, std::experimental::ranges::less>,
+                               nontype_list<0, 1>>);
 
-  static_assert(std::is_same_v<type_list_merge_sorted_t<type_list<dim_id<27>, dim_id<38>>,
-                                                        type_list<dim_id<3>, dim_id<43>>, dim_id_less>,
-                               type_list<dim_id<3>, dim_id<27>, dim_id<38>, dim_id<43>>>);
+  static_assert(std::is_same_v<nontype_list_merge_sorted_t<nontype_list<27, 38>, nontype_list<3, 43>, std::experimental::ranges::less>,
+                               nontype_list<3, 27, 38, 43>>);
   static_assert(
-      std::is_same_v<type_list_merge_sorted_t<type_list<dim_id<9>, dim_id<82>>, type_list<dim_id<10>>, dim_id_less>,
-                     type_list<dim_id<9>, dim_id<10>, dim_id<82>>>);
+      std::is_same_v<nontype_list_merge_sorted_t<nontype_list<9, 82>, nontype_list<10>, std::experimental::ranges::less>,
+                     nontype_list<9, 10, 82>>);
 
-  // type_list_sort
+  // nontype_list_sort
 
-  template<TypeList List>
-  using dim_sort_t = type_list_sort_t<List, dim_id_less>;
+  template<NonTypeList List>
+  using dim_sort_t = nontype_list_sort_t<List, std::experimental::ranges::less>;
 
-  static_assert(std::is_same_v<dim_sort_t<type_list<dim_id<0>>>, type_list<dim_id<0>>>);
-  static_assert(std::is_same_v<dim_sort_t<type_list<dim_id<0>, dim_id<1>>>, type_list<dim_id<0>, dim_id<1>>>);
-  static_assert(std::is_same_v<dim_sort_t<type_list<dim_id<1>, dim_id<0>>>, type_list<dim_id<0>, dim_id<1>>>);
-  static_assert(std::is_same_v<
-                dim_sort_t<type_list<dim_id<38>, dim_id<27>, dim_id<43>, dim_id<3>, dim_id<9>, dim_id<82>, dim_id<10>>>,
-                type_list<dim_id<3>, dim_id<9>, dim_id<10>, dim_id<27>, dim_id<38>, dim_id<43>, dim_id<82>>>);
+  static_assert(std::is_same_v<dim_sort_t<nontype_list<0>>, nontype_list<0>>);
+  static_assert(std::is_same_v<dim_sort_t<nontype_list<0, 1>>, nontype_list<0, 1>>);
+  static_assert(std::is_same_v<dim_sort_t<nontype_list<1, 0>>, nontype_list<0, 1>>);
+  static_assert(std::is_same_v<dim_sort_t<nontype_list<38, 27, 43, 3, 9, 82, 10>>, nontype_list<3, 9, 10, 27, 38, 43, 82>>);
 
   // exp_dim_id_less
 
-  template<int Id, int Value>
-  using e = exp<dim_id<Id>, Value>;
+  template<NonTypeList List>
+  using exp_sort_t = nontype_list_sort_t<List, std::experimental::ranges::less>;
 
-  template<TypeList List>
-  using exp_sort_t = type_list_sort_t<List, exp_dim_id_less>;
-
-  static_assert(std::is_same_v<exp_sort_t<dimension<e<0, 1>>>, dimension<e<0, 1>>>);
+  static_assert(std::is_same_v<exp_sort_t<dimension<exp(0, 1)>>, dimension<exp(0, 1)>>);
   static_assert(std::is_same_v<exp_sort_t<dimension<e<0, 1>, e<1, -1>>>, dimension<e<0, 1>, e<1, -1>>>);
   static_assert(std::is_same_v<exp_sort_t<dimension<e<1, 1>, e<0, -1>>>, dimension<e<0, -1>, e<1, 1>>>);
 

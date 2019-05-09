@@ -27,7 +27,7 @@
 
 namespace units {
 
-  struct dimension_mass : make_dimension_t<exp<base_dim_mass, 1>> {};
+  struct dimension_mass : make_dimension_t<{base_dim_mass, 1}> {};
   template<> struct upcasting_traits<upcast_from<dimension_mass>> : upcast_to<dimension_mass> {};
 
   template<typename T>

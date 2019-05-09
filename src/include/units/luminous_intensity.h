@@ -27,7 +27,7 @@
 
 namespace units {
 
-  struct dimension_luminous_intensity : make_dimension_t<exp<base_dim_luminous_intensity, 1>> {};
+  struct dimension_luminous_intensity : make_dimension_t<{base_dim_luminous_intensity, 1}> {};
   template<> struct upcasting_traits<upcast_from<dimension_luminous_intensity>> : upcast_to<dimension_luminous_intensity> {};
 
   template<typename T>

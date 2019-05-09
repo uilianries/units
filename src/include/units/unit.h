@@ -47,7 +47,7 @@ namespace units {
   }
 
   template<typename T>
-  concept bool Unit =
+  concept bool Unit = 
       std::is_empty_v<T> &&
       detail::is_unit<upcast_from<T>>;
 
@@ -56,14 +56,14 @@ namespace units {
 
   namespace detail {
 
-    template<Dimension D>
-    struct get_unit_base_dim;
-
-    template<Exponent E, Exponent... Rest>
-    struct get_unit_base_dim<dimension<E, Rest...>> {
-      static_assert(sizeof...(Rest) == 0, "Base unit expected");
-      using dimension = E::dimension;
-    };
+//    template<Dimension D>
+//    struct get_unit_base_dim;
+//
+//    template<Exponent E, Exponent... Rest>
+//    struct get_unit_base_dim<dimension<E, Rest...>> {
+//      static_assert(sizeof...(Rest) == 0, "Base unit expected");
+//      using dimension = E::dimension;
+//    };
 
     template<typename BaseDimension, Unit... Us>
     struct get_ratio {
@@ -72,10 +72,10 @@ namespace units {
 
     template<typename BaseDimension, Unit U, Unit... Rest>
     struct get_ratio<BaseDimension, U, Rest...> {
-      using unit_base_dim = get_unit_base_dim<typename U::dimension::base_type>::dimension;
       using ratio = std::conditional_t<unit_base_dim::value == BaseDimension::value, typename U::ratio,
                                        typename get_ratio<BaseDimension, Rest...>::ratio>;
     };
+      using ratio = std::conditional_t<unit_base_dim == B, typename U::ratio, typename get_ratio<B, URest...>::ratio>;
 
     template<Ratio Result, int UnitExpValue, Ratio UnitRatio>
     struct ratio_op;

@@ -22,67 +22,37 @@
 
 #pragma once
 
-#include <units/bits/type_list.h>
+#include <units/bits/nontype_list.h>
 #include <units/bits/upcasting.h>
 
 namespace units {
 
-  // dim_id
+  // Workaround for the gcc-9 issue
+  using base_dimension = int;
 
-  template<int UniqueValue>
-  using dim_id = std::integral_constant<int, UniqueValue>;
+//  struct base_dimension {
+//    const char* name;
+//    /* consteval */ constexpr explicit base_dimension(const char* n) noexcept : name(n) {}
+//    // auto operator<=>(const base_dimension&) = default;
+//    /* consteval */ constexpr friend bool operator<(const base_dimension& lhs, const base_dimension& rhs) noexcept { return lhs.name < rhs.name; }
+//    /* consteval */ constexpr friend bool operator==(const base_dimension& lhs, const base_dimension& rhs) noexcept { return lhs.name == rhs.name; }
+//  };
 
-  // dim_id_less
-
-  template<typename D1, typename D2>
-  struct dim_id_less : std::bool_constant<D1::value < D2::value> {
-  };
 
   // exp
 
-  template<typename BaseDimension, int Value>  // todo: to be replaced with fixed_string when supported by the compilers
-  // template<fixed_string BaseDimension, int Value>
   struct exp {
-    using dimension = BaseDimension;
-    static constexpr int value = Value;
+    base_dimension dimension;
+    int value;
+    /* consteval */ constexpr exp(base_dimension d, int v) noexcept : dimension(d), value(v) {}
+    // auto operator<=>(const exp&) = default;
+    friend /* consteval */ constexpr exp operator-(const exp& e) { return {e.dimension, -e.value}; }
+//    /* consteval */ constexpr bool less_dimension(const exp& lhs, const exp& rhs) const { return lhs.dimension < rhs.dimension; }
+//    /* consteval */ constexpr bool less_value(const exp& lhs, const exp& rhs) const { return lhs.value < rhs.value; }
   };
 
-  // is_exp
-  namespace detail {
-    template<typename T>
-    inline constexpr bool is_exp = false;
-
-    template<typename BaseDim, int Value>
-    inline constexpr bool is_exp<exp<BaseDim, Value>> = true;
-  }  // namespace detail
-
-  template<typename T>
-  concept bool Exponent = detail::is_exp<T>;
-
-  // exp_dim_id_less
-
-  template<Exponent E1, Exponent E2>
-  struct exp_dim_id_less : dim_id_less<typename E1::dimension, typename E2::dimension> {
-  };
-
-  // exp_dim_id_less
-
-  template<Exponent E1, Exponent E2>
-  struct exp_greater_equal : std::bool_constant<(E1::value >= E2::value)> {
-  };
-
-  // exp_invert
-
-  template<Exponent E>
-  struct exp_invert;
-
-  template<typename BaseDimension, int Value>
-  struct exp_invert<exp<BaseDimension, Value>> {
-    using type = exp<BaseDimension, -Value>;
-  };
-
-  template<Exponent E>
-  using exp_invert_t = exp_invert<E>::type;
+  template<exp E>
+  concept bool Exponent = true; //(E.value != 0);
 
   // dimension
 
@@ -95,15 +65,13 @@ namespace units {
     template<typename T>
     inline constexpr bool is_dimension = false;
 
-    template<Exponent... Es>
+    template<exp... Es>
     inline constexpr bool is_dimension<dimension<Es...>> = true;
 
   }  // namespace detail
 
   template<typename T>
-  concept bool Dimension =
-      std::is_empty_v<T> &&
-      detail::is_dimension<upcast_from<T>>;
+  concept bool Dimension = std::is_empty_v<T> && detail::is_dimension<upcast_from<T>>;
 
 
   // dim_invert
@@ -111,8 +79,8 @@ namespace units {
   template<Dimension E>
   struct dim_invert;
 
-  template<Exponent... Es>
-  struct dim_invert<dimension<Es...>> : std::type_identity<upcasting_traits_t<dimension<exp_invert_t<Es>...>>> {};
+  template<exp... Es>
+  struct dim_invert<dimension<Es...>> : std::type_identity<upcasting_traits_t<dimension<-Es...>>> {};
 
   template<Dimension D>
   using dim_invert_t = dim_invert<typename D::base_type>::type;
@@ -141,21 +109,31 @@ namespace units {
     template<Exponent E1, Exponent... ERest>
     struct dim_consolidate<dimension<E1, ERest...>> {
       using rest = dim_consolidate_t<dimension<ERest...>>;
-      using type =
-          std::conditional_t<std::is_same_v<rest, dimension<>>, dimension<E1>, type_list_push_front_t<rest, E1>>;
+      using type = std::conditional_t<std::is_same_v<rest, dimension<>>, dimension<E1>, mp::nontype_list_push_front_t<rest, E1>>;
     };
 
-    template<typename D, int V1, int V2, Exponent... ERest>
-    struct dim_consolidate<dimension<exp<D, V1>, exp<D, V2>, ERest...>> {
-      using type = std::conditional_t<V1 + V2 == 0, dim_consolidate_t<dimension<ERest...>>,
-                                      dim_consolidate_t<dimension<exp<D, V1 + V2>, ERest...>>>;
+    template<Exponent E1, Exponent E2, Exponent... ERest>
+      requires E1.dimension == E2.dimension
+    struct dim_consolidate<dimension<E1, E2, ERest...>> {
+      // SFINAE-friendly replacement of std::conditional_t
+      [[nodiscard]] /* consteval */ constexpr auto get_type() noexcept
+      {
+        if constexpr(E1.value + E2.value == 0)
+          return dim_consolidate_t<dimension<ERest...>>();
+        else
+          return dim_consolidate_t<dimension<exp(E1.dimension, E1.value + E2.value), ERest...>>();
+      }
+
+      using type = decltype(get_type());
+//      using type = std::conditional_t<E1.value + E2.value == 0, dim_consolidate_t<dimension<ERest...>>,
+//                                      dim_consolidate_t<dimension<exp(E1.dimension, E1.value + E2.value), ERest...>>>;
     };
 
   }  // namespace detail
 
   template<Exponent... Es>
   struct make_dimension {
-    using type = type_list_sort_t<detail::dim_consolidate_t<type_list_sort_t<dimension<Es...>, exp_dim_id_less>>, exp_greater_equal>;
+    using type = nontype_list_sort_t<detail::dim_consolidate_t<mp::nontype_list_sort_t<dimension<Es...>, std::experimental::ranges::less>>, std::experimental::ranges::greater_equal>;
   };
 
   template<Exponent... Es>
@@ -163,7 +141,7 @@ namespace units {
 
   template<Dimension D1, Dimension D2>
   struct merge_dimension {
-    using type = type_list_sort_t<detail::dim_consolidate_t<type_list_merge_sorted_t<D1, D2, exp_dim_id_less>>, exp_greater_equal>;
+    using type = nontype_list_sort_t<detail::dim_consolidate_t<mp::nontype_list_merge_sorted_t<D1, D2, std::experimental::ranges::less>>, std::experimental::ranges::greater_equal>;
   };
 
   template<Dimension D1, Dimension D2>
@@ -187,7 +165,7 @@ namespace units {
 
   template<Exponent... E1, Exponent... E2>
   struct dimension_divide<dimension<E1...>, dimension<E2...>>
-      : dimension_multiply<dimension<E1...>, dimension<exp_invert_t<E2>...>> {
+      : dimension_multiply<dimension<E1...>, dimension<-E2...>> {
   };
 
   template<Dimension D1, Dimension D2>

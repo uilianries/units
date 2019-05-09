@@ -27,7 +27,7 @@
 
 namespace units {
 
-  struct dimension_current : make_dimension_t<exp<base_dim_current, 1>> {};
+  struct dimension_current : make_dimension_t<{base_dim_current, 1}> {};
   template<> struct upcasting_traits<upcast_from<dimension_current>> : upcast_to<dimension_current> {};
 
   template<typename T>

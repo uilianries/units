@@ -27,7 +27,7 @@
 
 namespace units {
 
-  struct dimension_temperature : make_dimension_t<exp<base_dim_temperature, 1>> {};
+  struct dimension_temperature : make_dimension_t<{base_dim_temperature, 1}> {};
   template<> struct upcasting_traits<upcast_from<dimension_temperature>> : upcast_to<dimension_temperature> {};
 
   template<typename T>

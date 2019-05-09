@@ -26,7 +26,7 @@
 
 namespace units {
 
-  struct dimension_area : make_dimension_t<exp<base_dim_length, 2>> {};
+  struct dimension_area : make_dimension_t<{base_dim_length, 2}> {};
   template<> struct upcasting_traits<upcast_from<dimension_area>> : upcast_to<dimension_area> {};
 
   template<typename T>

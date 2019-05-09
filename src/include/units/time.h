@@ -27,7 +27,7 @@
 
 namespace units {
 
-  struct dimension_time : make_dimension_t<exp<base_dim_time, 1>> {};
+  struct dimension_time : make_dimension_t<{base_dim_time, 1}> {};
   template<> struct upcasting_traits<upcast_from<dimension_time>> : upcast_to<dimension_time> {};
 
   template<typename T>

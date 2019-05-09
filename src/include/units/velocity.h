@@ -27,7 +27,7 @@
 
 namespace units {
 
-  struct dimension_velocity : make_dimension_t<exp<base_dim_length, 1>, exp<base_dim_time, -1>> {};
+  struct dimension_velocity : make_dimension_t<{base_dim_length, 1}, {base_dim_time, -1}> {};
   template<> struct upcasting_traits<upcast_from<dimension_velocity>> : upcast_to<dimension_velocity> {};
 
   template<typename T>
