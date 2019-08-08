@@ -67,16 +67,16 @@ namespace std::experimental::units {
   } // namespace literals
 
   // US customary units
-  struct yard : unit<length, ratio<9'144, 10'000>> {};
+  struct yard : unit<length, ratio(9'144, 10'000)> {};
   template<> struct downcasting_traits<downcast_from<yard>> : downcast_to<yard> {};
 
-  struct foot : unit<length, ratio_multiply<ratio<1, 3>, yard::ratio>> {};
+  struct foot : unit<length, yard::ratio / 3> {};
   template<> struct downcasting_traits<downcast_from<foot>> : downcast_to<foot> {};
 
-  struct inch : unit<length, ratio_multiply<ratio<1, 12>, foot::ratio>> {};
+  struct inch : unit<length, foot::ratio / 12> {};
   template<> struct downcasting_traits<downcast_from<inch>> : downcast_to<inch> {};
 
-  struct mile : unit<length, ratio_multiply<ratio<1'760>, yard::ratio>> {};
+  struct mile : unit<length, 1'760 * yard::ratio> {};
   template<> struct downcasting_traits<downcast_from<mile>> : downcast_to<mile> {};
 
   inline namespace literals {

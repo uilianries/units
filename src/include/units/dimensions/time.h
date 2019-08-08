@@ -45,10 +45,10 @@ namespace std::experimental::units {
   struct millisecond : milli<second> {};
   template<> struct downcasting_traits<downcast_from<millisecond>> : downcast_to<millisecond> {};
 
-  struct minute : unit<time, ratio<60>> {};
+  struct minute : unit<time, 60 * second::ratio> {};
   template<> struct downcasting_traits<downcast_from<minute>> : downcast_to<minute> {};
 
-  struct hour : unit<time, ratio<3600>> {};
+  struct hour : unit<time, 3600 * second::ratio> {};
   template<> struct downcasting_traits<downcast_from<hour>> : downcast_to<hour> {};
 
   inline namespace literals {

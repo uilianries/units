@@ -33,7 +33,7 @@ namespace std::experimental::units {
   template<typename T>
   concept bool Mass = QuantityOf<T, mass>;
 
-  struct gram : unit<mass, ratio<1, 1000>> {};
+  struct gram : unit<mass, ratio(1, 1000)> {};
   template<> struct downcasting_traits<downcast_from<gram>> : downcast_to<gram> {};
 
   struct kilogram : kilo<gram> {};

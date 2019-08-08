@@ -24,6 +24,8 @@
 
 #include <experimental/ranges/concepts>
 
+#define consteval constexpr
+
 #ifdef NDEBUG
 #define Expects(cond) (void)(cond);
 #else
@@ -35,6 +37,7 @@ namespace std {
 
   // concepts
   using experimental::ranges::same_as;
+  using experimental::ranges::integral;
   using experimental::ranges::derived_from;
   using experimental::ranges::regular;
   using experimental::ranges::totally_ordered;

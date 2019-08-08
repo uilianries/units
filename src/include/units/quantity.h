@@ -71,7 +71,7 @@ namespace std::experimental::units {
   template<typename U1, typename Rep1, typename U2, typename Rep2, typename Rep>
     requires std::same_as<typename U1::dimension, typename U2::dimension>
   struct common_quantity<quantity<U1, Rep1>, quantity<U2, Rep2>, Rep> {
-    using type = quantity<downcasting_traits_t<unit<typename U1::dimension, common_ratio<typename U1::ratio, typename U2::ratio>>>, Rep>;
+    using type = quantity<downcasting_traits_t<unit<typename U1::dimension, units::common_ratio(U1::ratio, U2::ratio)>>, Rep>;
   };
 
   template<Quantity Q1, Quantity Q2, Scalar Rep = std::common_type_t<typename Q1::rep, typename Q2::rep>>
@@ -86,17 +86,16 @@ namespace std::experimental::units {
 
   namespace detail {
 
-    template<typename To, typename CR, typename CRep, bool NumIsOne = false, bool DenIsOne = false>
+    template<typename To, auto CR, typename CRep, bool NumIsOne = false, bool DenIsOne = false>
     struct quantity_cast_impl {
       template<typename Q>
       static constexpr To cast(const Q& q)
       {
-        return To(static_cast<To::rep>(static_cast<CRep>(q.count()) * static_cast<CRep>(CR::num) /
-                                       static_cast<CRep>(CR::den)));
+        return To(static_cast<To::rep>(static_cast<CRep>(q.count()) * static_cast<CRep>(CR.num) / static_cast<CRep>(CR.den)));
       }
     };
 
-    template<typename To, typename CR, typename CRep>
+    template<typename To, auto CR, typename CRep>
     struct quantity_cast_impl<To, CR, CRep, true, true> {
       template<Quantity Q>
       static constexpr To cast(const Q& q)
@@ -105,21 +104,21 @@ namespace std::experimental::units {
       }
     };
 
-    template<typename To, typename CR, typename CRep>
+    template<typename To, auto CR, typename CRep>
     struct quantity_cast_impl<To, CR, CRep, true, false> {
       template<Quantity Q>
       static constexpr To cast(const Q& q)
       {
-        return To(static_cast<To::rep>(static_cast<CRep>(q.count()) / static_cast<CRep>(CR::den)));
+        return To(static_cast<To::rep>(static_cast<CRep>(q.count()) / static_cast<CRep>(CR.den)));
       }
     };
 
-    template<typename To, typename CR, typename CRep>
+    template<typename To, auto CR, typename CRep>
     struct quantity_cast_impl<To, CR, CRep, false, true> {
       template<Quantity Q>
       static constexpr To cast(const Q& q)
       {
-        return To(static_cast<To::rep>(static_cast<CRep>(q.count()) * static_cast<CRep>(CR::num)));
+        return To(static_cast<To::rep>(static_cast<CRep>(q.count()) * static_cast<CRep>(CR.num)));
       }
     };
 
@@ -129,9 +128,9 @@ namespace std::experimental::units {
       requires std::same_as<typename To::dimension, typename U::dimension>
   constexpr To quantity_cast(const quantity<U, Rep>& q)
   {
-    using c_ratio = ratio_divide<typename U::ratio, typename To::unit::ratio>;
+    constexpr auto c_ratio = U::ratio / To::unit::ratio;
     using c_rep = std::common_type_t<typename To::rep, Rep, intmax_t>;
-    using cast = detail::quantity_cast_impl<To, c_ratio, c_rep, c_ratio::num == 1, c_ratio::den == 1>;
+    using cast = detail::quantity_cast_impl<To, c_ratio, c_rep, c_ratio.num == 1, c_ratio.den == 1>;
     return cast::cast(q);
   }
 
@@ -171,8 +170,7 @@ namespace std::experimental::units {
         requires std::same_as<dimension, typename Q2::dimension> &&
                  std::convertible_to<typename Q2::rep, rep> &&
                  (treat_as_floating_point<rep> ||
-                   (std::ratio_divide<typename Q2::unit::ratio, typename unit::ratio>::den == 1 &&
-                   !treat_as_floating_point<typename Q2::rep>))
+                   ((Q2::unit::ratio / unit::ratio).den == 1 && !treat_as_floating_point<typename Q2::rep>))
     constexpr quantity(const Q2& q) : value_{quantity_cast<quantity>(q).count()}
     {
     }
@@ -287,20 +285,19 @@ namespace std::experimental::units {
       requires std::same_as<typename U1::dimension, dim_invert_t<typename U2::dimension>>
   {
     using common_rep = decltype(lhs.count() * rhs.count());
-    using ratio = ratio_multiply<typename U1::ratio, typename U2::ratio>;
-    return common_rep(lhs.count()) * common_rep(rhs.count()) * common_rep(ratio::num) / common_rep(ratio::den);
+    constexpr auto ratio = U1::ratio * U2::ratio;
+    return common_rep(lhs.count()) * common_rep(rhs.count()) * common_rep(ratio.num) / common_rep(ratio.den);
   }
 
   template<typename U1, typename Rep1, typename U2, typename Rep2>
   [[nodiscard]] constexpr Quantity operator*(const quantity<U1, Rep1>& lhs,
                                              const quantity<U2, Rep2>& rhs)
       requires (!std::same_as<typename U1::dimension, dim_invert_t<typename U2::dimension>>) &&
-               (treat_as_floating_point<decltype(lhs.count() * rhs.count())> ||
-                (std::ratio_multiply<typename U1::ratio, typename U2::ratio>::den == 1))
+               (treat_as_floating_point<decltype(lhs.count() * rhs.count())> || ((U1::ratio * U2::ratio).den == 1))
   {
     using dim = dimension_multiply_t<typename U1::dimension, typename U2::dimension>;
     using common_rep = decltype(lhs.count() * rhs.count());
-    using ret = quantity<downcasting_traits_t<unit<dim, ratio_multiply<typename U1::ratio, typename U2::ratio>>>, common_rep>;
+    using ret = quantity<downcasting_traits_t<unit<dim, U1::ratio * U2::ratio>>, common_rep>;
     return ret(lhs.count() * rhs.count());
   }
 
@@ -314,7 +311,7 @@ namespace std::experimental::units {
 
     using dim = dim_invert_t<typename U::dimension>;
     using common_rep = decltype(v / q.count());
-    using ret = quantity<downcasting_traits_t<unit<dim, ratio<U::ratio::den, U::ratio::num>>>, common_rep>;
+    using ret = quantity<downcasting_traits_t<unit<dim, ratio(U::ratio.den, U::ratio.num)>>, common_rep>;
     using den = quantity<U, common_rep>;
     return ret(v / den(q).count());
   }
@@ -348,14 +345,13 @@ namespace std::experimental::units {
   [[nodiscard]] constexpr Quantity operator/(const quantity<U1, Rep1>& lhs,
                                              const quantity<U2, Rep2>& rhs)
     requires (!std::same_as<typename U1::dimension, typename U2::dimension>) &&
-             (treat_as_floating_point<decltype(lhs.count() / rhs.count())> ||
-              (ratio_divide<typename U1::ratio, typename U2::ratio>::den == 1))
+             (treat_as_floating_point<decltype(lhs.count() / rhs.count())> || ((U1::ratio / U2::ratio).den == 1))
   {
     Expects(rhs != std::remove_cvref_t<decltype(rhs)>(0));
 
     using common_rep = decltype(lhs.count() / rhs.count());
     using dim = dimension_divide_t<typename U1::dimension, typename U2::dimension>;
-    using ret = quantity<downcasting_traits_t<unit<dim, ratio_divide<typename U1::ratio, typename U2::ratio>>>, common_rep>;
+    using ret = quantity<downcasting_traits_t<unit<dim, U1::ratio / U2::ratio>>, common_rep>;
     return ret(lhs.count() / rhs.count());
   }
 

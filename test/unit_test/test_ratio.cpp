@@ -26,26 +26,23 @@ namespace {
 
   using namespace std::experimental::units;
 
-  template<Ratio R1, Ratio R2>
-  inline constexpr bool same = R1::num == R2::num && R1::den == R2::den;
+  static_assert(ratio(2, 4) == ratio(1, 2));
 
-  static_assert(same<ratio<2, 4>, ratio<1, 2>>);
+  static_assert(4 * ratio(1, 8) == ratio(1, 2));
+  static_assert(4 * ratio(1, 2) == ratio(2));
+  static_assert(ratio(1, 8) * 2 == ratio(1, 4));
+  static_assert(ratio(1, 2) * 8 == ratio(4));
 
-  static_assert(std::is_same_v<ratio_multiply<ratio<4>, ratio<1, 8>>, ratio<1, 2>>);
-  static_assert(std::is_same_v<ratio_multiply<ratio<4>, ratio<1, 2>>, ratio<2>>);
-  static_assert(std::is_same_v<ratio_multiply<ratio<1, 8>, ratio<2>>, ratio<1, 4>>);
-  static_assert(std::is_same_v<ratio_multiply<ratio<1, 2>, ratio<8>>, ratio<4>>);
-
-  static_assert(std::is_same_v<ratio_divide<ratio<4>, ratio<2>>, ratio<2>>);
-  static_assert(std::is_same_v<ratio_divide<ratio<2>, ratio<8>>, ratio<1, 4>>);
-  static_assert(std::is_same_v<ratio_divide<ratio<1, 8>, ratio<2>>, ratio<1, 16>>);
-  static_assert(std::is_same_v<ratio_divide<ratio<6>, ratio<3>>, ratio<2>>);
+  static_assert(4 / ratio(2) == ratio(2));
+  static_assert(2 / ratio(8) == ratio(1, 4));
+  static_assert(ratio(1, 8) / 2 == ratio(1, 16));
+  static_assert(ratio(6) / 3 == ratio(2));
 
   // common_ratio
 
-  static_assert(std::is_same_v<common_ratio<ratio<1>, ratio<1000>>, ratio<1>>);
-  static_assert(std::is_same_v<common_ratio<ratio<1000>, ratio<1>>, ratio<1>>);
-  static_assert(std::is_same_v<common_ratio<ratio<1>, ratio<1, 1000>>, ratio<1, 1000>>);
-  static_assert(std::is_same_v<common_ratio<ratio<1, 1000>, ratio<1>>, ratio<1, 1000>>);
+  static_assert(common_ratio(ratio(1), std::kilo()) == ratio(1));
+  static_assert(common_ratio(std::kilo(), ratio(1)) == ratio(1));
+  static_assert(common_ratio(ratio(1), std::milli()) == std::milli());
+  static_assert(common_ratio(std::milli(), ratio(1)) == std::milli());
 
 }  // namespace

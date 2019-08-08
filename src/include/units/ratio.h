@@ -23,116 +23,87 @@
 #pragma once
 
 #include <units/bits/hacks.h>
-#include <type_traits>
 #include <numeric>
-#include <cstdint>
+#include <ratio>
+
 
 namespace std::experimental::units {
 
   namespace detail {
 
     template<typename T>
-    [[nodiscard]] constexpr T abs(T v) noexcept { return v < 0 ? -v : v; }
+    [[nodiscard]] consteval T abs(T v) noexcept { return v < 0 ? -v : v; }
 
   }
 
-  template<std::intmax_t Num, std::intmax_t Den = 1>
   struct ratio {
-    static_assert(Den != 0, "zero denominator");
-    static_assert(-INTMAX_MAX <= Num, "numerator too negative");
-    static_assert(-INTMAX_MAX <= Den, "denominator too negative");
+    std::intmax_t num;
+    std::intmax_t den;
 
-    static constexpr std::intmax_t num = Num * (Den < 0 ? -1 : 1) / std::gcd(Num, Den);
-    static constexpr std::intmax_t den = detail::abs(Den) / std::gcd(Num, Den);
-
-    using type = ratio<num, den>;
-  };
-
-  // is_ratio
-
-  namespace detail {
-
-    template<typename T>
-    inline constexpr bool is_ratio = false;
-
-    template<intmax_t Num, intmax_t Den>
-    inline constexpr bool is_ratio<ratio<Num, Den>> = true;
-
-  }  // namespace detail
-
-  template<typename T>
-  concept bool Ratio = detail::is_ratio<T>;
-
-  // ratio_multiply
-
-  namespace detail {
-
-    static constexpr std::intmax_t safe_multiply(std::intmax_t lhs, std::intmax_t rhs)
+    explicit consteval ratio(std::intmax_t n, std::intmax_t d = 1):
+      // Note: sign(N) * abs(N) == N
+      num(n * (d < 0 ? -1 : 1) / std::gcd(n, d)),
+      den(detail::abs(d) / std::gcd(n, d))
     {
-      constexpr std::uintmax_t c = std::uintmax_t(1) << (sizeof(std::intmax_t) * 4);
-
-      const std::uintmax_t a0 = detail::abs(lhs) % c;
-      const std::uintmax_t a1 = detail::abs(lhs) / c;
-      const std::uintmax_t b0 = detail::abs(rhs) % c;
-      const std::uintmax_t b1 = detail::abs(rhs) / c;
-
-      Expects(a1 == 0 || b1 == 0); //  overflow in multiplication
-      Expects(a0 * b1 + b0 * a1 < (c >> 1)); // overflow in multiplication
-      Expects(b0 * a0 <= INTMAX_MAX); // overflow in multiplication
-      Expects((a0 * b1 + b0 * a1) * c <= INTMAX_MAX -  b0 * a0); // overflow in multiplication
-
-      return lhs * rhs;
+      Expects(d != 0); // denominator cannot be zero
+      Expects(n >= -std::numeric_limits<std::intmax_t>::max() &&
+              d >= -std::numeric_limits<std::intmax_t>::max()); // out of range
     }
 
-    template<typename R1, typename R2>
-    struct ratio_multiply_impl {
-    private:
-      static constexpr std::intmax_t gcd1 = std::gcd(R1::num, R2::den);
-      static constexpr std::intmax_t gcd2 = std::gcd(R2::num, R1::den);
+    template<std::intmax_t Num, std::intmax_t Den>
+    consteval ratio(std::ratio<Num, Den>): num(Num), den(Den) {}
 
-    public:
-      using type = ratio<safe_multiply(R1::num / gcd1, R2::num / gcd2), safe_multiply(R1::den / gcd2, R2::den / gcd1)>;
-      static constexpr std::intmax_t num = type::num;
-      static constexpr std::intmax_t den = type::den;
-    };
+    // [[nodiscard]] constexpr bool operator==(const ratio &) noexcept = default;
+    [[nodiscard]] friend consteval bool operator==(const ratio& lhs, const ratio& rhs) noexcept { return lhs.num == rhs.num && lhs.den == rhs.den; }
 
-  }
+    [[nodiscard]] friend consteval ratio operator*(const ratio& lhs, const ratio& rhs)
+    {
+      const auto gcd1 = std::gcd(lhs.num, rhs.den);
+      const auto gcd2 = std::gcd(rhs.num, lhs.den);
+      return ratio((lhs.num / gcd1) * (rhs.num / gcd2), (lhs.den / gcd2) * (rhs.den / gcd1));
+    }
 
-  template<Ratio R1, Ratio R2>
-  using ratio_multiply = detail::ratio_multiply_impl<R1, R2>::type;
+    [[nodiscard]] friend consteval ratio operator*(std::intmax_t n, const ratio& rhs)
+    {
+      return ratio(n) * rhs;
+    }
 
-  // ratio_divide
+    [[nodiscard]] friend consteval ratio operator*(const ratio& lhs, std::intmax_t n)
+    {
+      return lhs * ratio(n);
+    }
 
-  namespace detail {
+    [[nodiscard]] friend consteval ratio operator/(const ratio& lhs, const ratio& rhs)
+    {
+      Expects(rhs.num != 0);
+      return lhs * ratio(rhs.den, rhs.num);
+    }
 
-    template<typename R1, typename R2>
-    struct ratio_divide_impl {
-      static_assert(R2::num != 0, "division by 0");
-      using type = ratio_multiply<R1, ratio<R2::den, R2::num>>;
-      static constexpr std::intmax_t num = type::num;
-      static constexpr std::intmax_t den = type::den;
-    };
+    [[nodiscard]] friend consteval ratio operator/(std::intmax_t n, const ratio& rhs)
+    {
+      return ratio(n) / rhs;
+    }
 
-  }
+    [[nodiscard]] friend consteval ratio operator/(const ratio& lhs, std::intmax_t n)
+    {
+      return lhs / ratio(n);
+    }
+  };
 
-  template<Ratio R1, Ratio R2>
-  using ratio_divide = detail::ratio_divide_impl<R1, R2>::type;
+  template<auto V>
+  concept bool Ratio = requires {
+      { V.num } -> std::integral;
+      { V.den } -> std::integral;
+  } && (V.den != 0);
 
   // common_ratio
 
-  namespace detail {
-
-    // todo: simplified
-    template<typename R1, typename R2>
-    struct common_ratio_impl {
-      static constexpr std::intmax_t gcd_num = std::gcd(R1::num, R2::num);
-      static constexpr std::intmax_t gcd_den = std::gcd(R1::den, R2::den);
-      using type = ratio<gcd_num, (R1::den / gcd_den) * R2::den>;
-    };
-
+  // todo: simplified
+  [[nodiscard]] consteval ratio common_ratio(ratio f1, ratio f2) noexcept
+  {
+    const auto gcd_num = std::gcd(f1.num, f2.num);
+    const auto gcd_den = std::gcd(f1.den, f2.den);
+    return ratio(gcd_num, f1.den / gcd_den * f2.den);
   }
 
-  template<Ratio R1, Ratio R2>
-  using common_ratio = detail::common_ratio_impl<R1, R2>::type;
-
-}  // namespace std::experimental::units
+}
