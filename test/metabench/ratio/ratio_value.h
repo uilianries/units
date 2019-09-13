@@ -23,7 +23,14 @@
 #pragma once
 
 #include <numeric>
-#include <gsl/gsl-lite.hpp>
+#include <cstdint>
+
+#ifdef NDEBUG
+#define Expects(cond) (void)(cond);
+#else
+#include <cassert>
+#define Expects(cond) assert(cond);
+#endif
 
 
 namespace units {

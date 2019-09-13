@@ -85,9 +85,10 @@ namespace std::experimental::units {
     {
       auto conv = derived_ratio<Us...>(dimension<Rest...>());
       const auto e_ratio = get_ratio<Us...>(E::dimension);
-      auto exp = E::value;
-      for(; exp > 0; --exp) conv = conv * e_ratio;
-      for(; exp < 0; ++exp) conv = conv / e_ratio;
+      auto den = E::den;
+      auto num = den < 0 ? -E::num : E::num;
+      for(; num > 0; --num) conv = conv * e_ratio;
+      for(; num < 0; ++num) conv = conv / e_ratio;
       return conv;
     }
 

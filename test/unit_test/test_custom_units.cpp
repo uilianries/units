@@ -37,7 +37,7 @@ namespace {
   concept bool DigitalInformation = units::QuantityOf<T, digital_information>;
 
   struct bit : units::unit<digital_information> {};
-  struct byte : units::unit<digital_information, units::ratio<8>> {};
+  struct byte : units::unit<digital_information, units::ratio(8)> {};
 
   inline namespace literals {
 
