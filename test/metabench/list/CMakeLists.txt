@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 
-add_metabench_test(metabench.data.list.type_list.concepts_all "all concepts" type_list_concepts_all.cpp.erb "[3, 6, 9, 12, 15]")
-add_metabench_test(metabench.data.list.type_list.concepts_iface "concepts in interface" type_list_concepts_iface.cpp.erb "[3, 6, 9, 12, 15]")
-add_metabench_test(metabench.data.list.type_list.concepts_no "no concepts" type_list_concepts_no.cpp.erb "[3, 6, 9, 12, 15]")
+add_metabench_test(metabench.data.list.type_list.concepts_all "all concepts" type_list_concepts_all.cpp.erb "[1, 2, 3, 4, 6, 9, 12, 15]")
+add_metabench_test(metabench.data.list.type_list.concepts_iface "concepts in interface" type_list_concepts_iface.cpp.erb "[1, 2, 3, 4, 6, 9, 12, 15]")
+add_metabench_test(metabench.data.list.type_list.concepts_no "no concepts" type_list_concepts_no.cpp.erb "[1, 2, 3, 4, 6, 9, 12, 15]")
 metabench_add_chart(metabench.chart.list.concepts
     TITLE "Sorting a list of size N"
     SUBTITLE "(smaller is better)"
@@ -33,9 +33,9 @@ metabench_add_chart(metabench.chart.list.concepts
         metabench.data.list.type_list.concepts_no
 )
 
-add_metabench_test(metabench.data.list.type_list.conditional_std "std::conditional" type_list_conditional_std.cpp.erb "[3, 6, 9, 12, 15]")
-add_metabench_test(metabench.data.list.type_list.conditional_alias "alias conditional" type_list_conditional_alias.cpp.erb "[3, 6, 9, 12, 15]")
-add_metabench_test(metabench.data.list.type_list.conditional_alias_hard "alias conditional hard" type_list_conditional_alias_hard.cpp.erb "[3, 6, 9, 12, 15]")
+add_metabench_test(metabench.data.list.type_list.conditional_std "std::conditional" type_list_conditional_std.cpp.erb "[1, 2, 3, 4, 6, 9, 12, 15]")
+add_metabench_test(metabench.data.list.type_list.conditional_alias "alias conditional" type_list_conditional_alias.cpp.erb "[1, 2, 3, 4, 6, 9, 12, 15]")
+add_metabench_test(metabench.data.list.type_list.conditional_alias_hard "alias conditional hard" type_list_conditional_alias_hard.cpp.erb "[1, 2, 3, 4, 6, 9, 12, 15]")
 metabench_add_chart(metabench.chart.list.conditional
     TITLE "Sorting a list of size N"
     SUBTITLE "(smaller is better)"
