@@ -71,11 +71,13 @@ namespace std::experimental::units {
 
   // is_exp
   namespace detail {
-    template<typename T>
+
+    template<typename E>
     inline constexpr bool is_exp = false;
 
     template<const base_dimension& BaseDimension, int Num, int Den>
     inline constexpr bool is_exp<exp<BaseDimension, Num, Den>> = true;
+
   }  // namespace detail
 
   template<typename T>
@@ -89,16 +91,20 @@ namespace std::experimental::units {
 
   // exp_invert
 
-  template<Exponent E>
-  struct exp_invert;
+  namespace detail {
 
-  template<const base_dimension& BaseDimension, int Num, int Den>
-  struct exp_invert<exp<BaseDimension, Num, Den>> {
-    using type = exp<BaseDimension, -Num, Den>;
-  };
+    template<typename E>
+    struct exp_invert;
+
+    template<const base_dimension& BaseDimension, int Num, int Den>
+    struct exp_invert<exp<BaseDimension, Num, Den>> {
+      using type = exp<BaseDimension, -Num, Den>;
+    };
+
+  }
 
   template<Exponent E>
-  using exp_invert_t = exp_invert<E>::type;
+  using exp_invert_t = detail::exp_invert<E>::type;
 
   // dimension
 
@@ -108,7 +114,7 @@ namespace std::experimental::units {
   // is_dimension
   namespace detail {
 
-    template<typename T>
+    template<typename Dim>
     inline constexpr bool is_dimension = false;
 
     template<typename... Es>
@@ -123,15 +129,18 @@ namespace std::experimental::units {
 
 
   // dim_invert
+  namespace detail {
 
-  template<Dimension E>
-  struct dim_invert;
+    template<typename Dim>
+    struct dim_invert;
 
-  template<typename... Es>
-  struct dim_invert<dimension<Es...>> : std::type_identity<downcasting_traits_t<dimension<exp_invert_t<Es>...>>> {};
+    template<typename... Es>
+    struct dim_invert<dimension<Es...>> : std::type_identity<downcasting_traits_t<dimension<exp_invert_t<Es>...>>> {};
+
+  }
 
   template<Dimension D>
-  using dim_invert_t = dim_invert<typename D::base_type>::type;
+  using dim_invert_t = detail::dim_invert<typename D::base_type>::type;
 
 
   // todo: force as the only user interface to create dimensions through modules
@@ -139,11 +148,11 @@ namespace std::experimental::units {
 
   namespace detail {
 
-    template<Dimension D>
+    template<typename Dim>
     struct dim_consolidate;
 
-    template<Dimension D>
-    using dim_consolidate_t = dim_consolidate<D>::type;
+    template<typename Dim>
+    using dim_consolidate_t = dim_consolidate<Dim>::type;
 
     template<>
     struct dim_consolidate<dimension<>> {
@@ -173,44 +182,59 @@ namespace std::experimental::units {
 
   }  // namespace detail
 
-  template<Exponent... Es>
-  struct make_dimension {
-    using type = detail::dim_consolidate_t<type_list_sort<dimension<Es...>, exp_less>>;
-  };
+  namespace detail {
+
+    template<typename... Es>
+    struct make_dimension {
+      using type = detail::dim_consolidate_t<type_list_sort<dimension<Es...>, exp_less>>;
+    };
+
+  }
 
   template<Exponent... Es>
-  using make_dimension_t = make_dimension<Es...>::type;
+  using make_dimension_t = detail::make_dimension<Es...>::type;
+
+  namespace detail {
+
+    template<typename D1, typename D2>
+    struct merge_dimension {
+      using type = detail::dim_consolidate_t<type_list_merge_sorted<D1, D2, exp_less>>;
+    };
+
+  }
 
   template<Dimension D1, Dimension D2>
-  struct merge_dimension {
-    using type = detail::dim_consolidate_t<type_list_merge_sorted<D1, D2, exp_less>>;
-  };
-
-  template<Dimension D1, Dimension D2>
-  using merge_dimension_t = merge_dimension<D1, D2>::type;
+  using merge_dimension_t = detail::merge_dimension<D1, D2>::type;
 
   // dimension_multiply
+  namespace detail {
+
+    template<typename D1, typename D2>
+    struct dimension_multiply;
+
+    template<typename... E1, typename... E2>
+    struct dimension_multiply<dimension<E1...>, dimension<E2...>> : std::type_identity<downcasting_traits_t<merge_dimension_t<dimension<E1...>, dimension<E2...>>>> {};
+
+  }
 
   template<Dimension D1, Dimension D2>
-  struct dimension_multiply;
-
-  template<typename... E1, typename... E2>
-  struct dimension_multiply<dimension<E1...>, dimension<E2...>> : std::type_identity<downcasting_traits_t<merge_dimension_t<dimension<E1...>, dimension<E2...>>>> {};
-
-  template<Dimension D1, Dimension D2>
-  using dimension_multiply_t = dimension_multiply<typename D1::base_type, typename D2::base_type>::type;
+  using dimension_multiply_t = detail::dimension_multiply<typename D1::base_type, typename D2::base_type>::type;
 
   // dimension_divide
 
-  template<Dimension D1, Dimension D2>
-  struct dimension_divide;
+  namespace detail {
 
-  template<typename... E1, typename... E2>
-  struct dimension_divide<dimension<E1...>, dimension<E2...>>
-      : dimension_multiply<dimension<E1...>, dimension<exp_invert_t<E2>...>> {
-  };
+    template<typename D1, typename D2>
+    struct dimension_divide;
+
+    template<typename... E1, typename... E2>
+    struct dimension_divide<dimension<E1...>, dimension<E2...>>
+        : dimension_multiply<dimension<E1...>, dimension<exp_invert_t<E2>...>> {
+    };
+
+  }
 
   template<Dimension D1, Dimension D2>
-  using dimension_divide_t = dimension_divide<typename D1::base_type, typename D2::base_type>::type;
+  using dimension_divide_t = detail::dimension_divide<typename D1::base_type, typename D2::base_type>::type;
 
 }  // namespace std::experimental::units
