@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 from conans import ConanFile, CMake, tools
-from conans.tools import load
+from conans.tools import load, Version
 from conans.errors import ConanInvalidConfiguration
 import re
 
@@ -30,7 +30,7 @@ def get_version():
     try:
         content = load("src/CMakeLists.txt")
         version = re.search(r"project\([^\)]+VERSION (\d+\.\d+\.\d+)[^\)]*\)", content).group(1)
-        return version.strip()
+        return str(version).strip()
     except Exception:
         return None
 
@@ -49,18 +49,12 @@ class UnitsConan(ConanFile):
         "Catch2/2.10.0@catchorg/stable",
         "fmt/6.0.0"
     )
-    scm = {
-        "type": "git",
-        "url": "auto",
-        "revision": "auto",
-        "submodule": "recursive"
-    }
     generators = "cmake"
 
     def configure(self):
         if self.settings.compiler != "gcc":
             raise ConanInvalidConfiguration("Library works only with gcc")
-        if int(self.settings.compiler.version.value) < 9:
+        if Version(self.settings.compiler.version) < "9":
             raise ConanInvalidConfiguration("Library requires at least gcc-9")
         if self.settings.compiler.cppstd not in ["20", "gnu20"]:
             raise ConanInvalidConfiguration("Library requires at least C++20 support")
