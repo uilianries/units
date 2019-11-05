@@ -43,6 +43,7 @@ class UnitsConan(ConanFile):
     url = "https://github.com/mpusz/units"
     description = "Physical Units library for C++"
     exports = ["LICENSE.md"]
+    exports_sources = ["*"]
     settings = "os", "compiler", "build_type", "arch"
     requires = (
         "range-v3/0.9.1@ericniebler/stable",
